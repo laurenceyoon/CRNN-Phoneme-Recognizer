@@ -30,7 +30,7 @@ class ConvStack(nn.Module):
         )
         self.fc = nn.Sequential(
             nn.Linear((output_features // 8) * (input_features // 4), output_features),
-            nn.Dropout(0.5)
+            nn.Dropout(0.5),
         )
 
     def forward(self, data):
@@ -45,7 +45,12 @@ class BiLSTM(nn.Module):
 
     def __init__(self, input_features, recurrent_features):
         super().__init__()
-        self.rnn = nn.LSTM(input_features, recurrent_features, batch_first=True, bidirectional=True)
+        self.rnn = nn.LSTM(
+            input_features, recurrent_features, batch_first=True, bidirectional=True
+        )  # TODO bidirectional = False
+        # self.rnn = nn.LSTM(
+        #     input_features, recurrent_features, batch_first=True, bidirectional=False
+        # )
 
     def forward(self, x):
         if self.training:
@@ -58,7 +63,9 @@ class BiLSTM(nn.Module):
 
             h = torch.zeros(num_directions, batch_size, hidden_size).to(x.device)
             c = torch.zeros(num_directions, batch_size, hidden_size).to(x.device)
-            output = torch.zeros(batch_size, sequence_length, num_directions * hidden_size).to(x.device)
+            output = torch.zeros(
+                batch_size, sequence_length, num_directions * hidden_size
+            ).to(x.device)
 
             # forward direction
             slices = range(0, sequence_length, self.inference_chunk_length)
@@ -85,11 +92,14 @@ class CRNN(nn.Module):
 
         self.criterion = nn.CrossEntropyLoss()
 
-        self.input_features = config.n_mels if config.feature_type == 'melspec' else config.n_mfcc
+        self.input_features = (
+            config.n_mels if config.feature_type == "melspec" else config.n_mfcc
+        )
         self.output_features = config.num_lbl
 
-        self.model = self._create_model(self.input_features,
-                                        self.output_features, config)
+        self.model = self._create_model(
+            self.input_features, self.output_features, config
+        )
 
         # self.melspec = MelSpectrogram(sr=consts.sample_rate, n_mels=config.n_mels)
         self.feat_ext = FeatureExtractor(config)
@@ -109,16 +119,18 @@ class CRNN(nn.Module):
         return self.model(data)
 
     def run_on_batch(self, batch, cal_loss=True):
-        feat = self.feat_ext(batch['audio']).transpose(1, 2).unsqueeze(1)  # (N, 1, T, F)
+        feat = (
+            self.feat_ext(batch["audio"]).transpose(1, 2).unsqueeze(1)
+        )  # (N, 1, T, F)
         pred = self(feat)  # (N, T, F)
 
         predictions = {
-            'frame': pred,
+            "frame": pred,
         }
 
         if cal_loss:
             pred = pred.view(-1, self.output_features)  # (N * T, F)
-            lbl = batch['label'].view(-1)
+            lbl = batch["label"].view(-1)
 
             # if self.sil_label:
             #     _, frame_lbl = batch['frame'].view(-1, self.output_features).max(dim=1)
@@ -126,7 +138,7 @@ class CRNN(nn.Module):
             #     frame_lbl = batch['frame'][:, :, 1:].view(-1, self.output_features)
 
             losses = {
-                'loss': self.criterion(pred, lbl),
+                "loss": self.criterion(pred, lbl),
             }
 
             return predictions, losses

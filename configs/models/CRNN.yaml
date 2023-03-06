@@ -23,7 +23,8 @@ dataset:
     - TIMIT
   test:
     - TIMIT
-num_lbl: 61
+# num_lbl: 61
+num_lbl: 39
 
 # model config
 batch_size: 16

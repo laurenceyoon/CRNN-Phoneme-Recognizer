@@ -1,4 +1,5 @@
-timit_path: "TIMIT/data/lisa/data/timit/raw/TIMIT"
+# timit_path: "TIMIT/data/lisa/data/timit/raw/TIMIT"
+timit_path: "/media/bach1/dataset/TIMIT/LDC93S1-TIMIT/timit"
 timit_path_prep: "TIMIT_prep"
 phoneset61_path: "timit61.phoneset"
 phoneset39_path: "timit39.phoneset"

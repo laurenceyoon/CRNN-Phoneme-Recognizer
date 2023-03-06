@@ -134,7 +134,7 @@ def train(logger, config, consts, paths):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('logger', choices=['wandb', 'tensorboard', 'none'])
+    parser.add_argument('logger', choices=['wandb', 'tensorboard', 'none'], nargs='?', default='wandb')
     args = parser.parse_args()
 
     config = load_yaml('configs/config.yaml')

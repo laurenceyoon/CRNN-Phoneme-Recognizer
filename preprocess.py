@@ -57,8 +57,9 @@ def preprocess_timit(consts, paths):
     if not prep_path.exists():
         prep_path.mkdir()
 
-    for group in ['train', 'test']:
-        group_path = orig_path / group.upper()
+    for group in ['train', 'test2']:
+        # group_path = orig_path / group.upper()
+        group_path = orig_path / group  # 대/소문자 구분으로 인해 변경
 
         phns = list(group_path.glob('**/*.phn')) + list(group_path.glob('**/*.PHN'))
         wavs = list(group_path.glob('**/*.wav')) + list(group_path.glob('**/*.WAV'))

@@ -132,3 +132,9 @@ dmypy.json
 wandb
 wandb_model_save
 runs
+
+# data
+TIMIT_prep/
+
+# torch
+*.pt
