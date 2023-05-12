@@ -45,12 +45,12 @@ class BiLSTM(nn.Module):
 
     def __init__(self, input_features, recurrent_features):
         super().__init__()
-        self.rnn = nn.LSTM(
-            input_features, recurrent_features, batch_first=True, bidirectional=True
-        )  # TODO bidirectional = False
         # self.rnn = nn.LSTM(
-        #     input_features, recurrent_features, batch_first=True, bidirectional=False
-        # )
+        #     input_features, recurrent_features, batch_first=True, bidirectional=True
+        # )  # TODO bidirectional = False
+        self.rnn = nn.LSTM(
+            input_features, recurrent_features, batch_first=True, bidirectional=False
+        )
 
     def forward(self, x):
         if self.training:
@@ -74,14 +74,14 @@ class BiLSTM(nn.Module):
                 output[:, start:end, :], (h, c) = self.rnn(x[:, start:end, :], (h, c))
 
             # reverse direction
-            if self.rnn.bidirectional:
-                h.zero_()
-                c.zero_()
+            # if self.rnn.bidirectional:
+            #     h.zero_()
+            #     c.zero_()
 
-                for start in reversed(slices):
-                    end = start + self.inference_chunk_length
-                    result, (h, c) = self.rnn(x[:, start:end, :], (h, c))
-                    output[:, start:end, hidden_size:] = result[:, :, hidden_size:]
+            #     for start in reversed(slices):
+            #         end = start + self.inference_chunk_length
+            #         result, (h, c) = self.rnn(x[:, start:end, :], (h, c))
+            #         output[:, start:end, hidden_size:] = result[:, :, hidden_size:]
 
             return output
 
@@ -110,7 +110,7 @@ class CRNN(nn.Module):
         model_size = model_complexity * 16
 
         modules.append(ConvStack(input_features, model_size))
-        modules.append(BiLSTM(model_size, model_size // 2))
+        modules.append(BiLSTM(model_size, model_size))
         modules.append(nn.Linear(model_size, output_features))
 
         return nn.Sequential(*modules)

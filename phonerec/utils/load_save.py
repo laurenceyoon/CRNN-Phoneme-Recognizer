@@ -20,7 +20,7 @@ def load_yaml(filename):
 def load_datasets(dataset_names, config, paths, group=None, debug=False):
     dataset_list = []
     for dataset_name in dataset_names:
-        path = paths[f'{dataset_name.lower()}_path_prep']
+        path = paths[f"{dataset_name.lower()}_path_prep"]
         dataset = PhonemeFrameDataset(config, path, group, debug)
         dataset_list.append(dataset)
 
@@ -45,20 +45,36 @@ def save_model(save_path, model, config, consts):
     if save_path is not None:
         save_path.parent.mkdir(parents=True, exist_ok=True)
         model_state_dict = model.state_dict()
-        save_data = {'model_state_dict': model_state_dict,
-                     'config': config.to_dict(),
-                     'consts': consts.to_dict()}
+
+        missing_keys = [
+            "model.1.rnn.weight_ih_l0_reverse",
+            "model.1.rnn.weight_hh_l0_reverse",
+            "model.1.rnn.bias_ih_l0_reverse",
+            "model.1.rnn.bias_hh_l0_reverse",
+        ]
+        for key in missing_keys:
+            if key in model_state_dict:
+                del model_state_dict[key]
+                print(f"REMOVE! missing key: {key}")
+
+        save_data = {
+            "model_state_dict": model_state_dict,
+            "config": config.to_dict(),
+            "consts": consts.to_dict(),
+        }
+        for k, v in model_state_dict.items():
+            print(f"model_state_dict.{k}: {v.shape}")
 
         torch.save(save_data, save_path)
 
 
 def load_model(file):
-    save_data = torch.load(file, map_location='cpu')
-    model_state_dict = save_data['model_state_dict']
-    config = AttributeDict(save_data['config'])
-    consts = AttributeDict(save_data['consts'])
+    save_data = torch.load(file, map_location="cpu")
+    model_state_dict = save_data["model_state_dict"]
+    config = AttributeDict(save_data["config"])
+    consts = AttributeDict(save_data["consts"])
 
-    model = create_model(config, consts, 'cpu')
+    model = create_model(config, consts, "cpu")
     model.load_state_dict(model_state_dict)
     model.to(config.device)
 
@@ -70,12 +86,14 @@ def parse_argv():
     argc = len(argv)
     argv_list = []
     for i in range(argc):
-        argv_list.append(argv[i].split('='))
+        argv_list.append(argv[i].split("="))
 
     argv_list = [item for sublist in argv_list for item in sublist]
 
     for i in range(1, len(argv_list), 2):
-        arg_dict[argv_list[i].lstrip('-').replace('-', '_')] = _arg_type_fix(argv_list[i + 1])
+        arg_dict[argv_list[i].lstrip("-").replace("-", "_")] = _arg_type_fix(
+            argv_list[i + 1]
+        )
 
     return arg_dict
 
@@ -95,9 +113,9 @@ def _arg_type_fix(arg):
 def create_dict_raw(phoneset_path, reverse=False):
     dict_raw = dict()
     line_idx = 0
-    with open(phoneset_path, 'r') as f:
+    with open(phoneset_path, "r") as f:
         for line in f:
-            phoneme = line.split(' ')[0].strip()
+            phoneme = line.split(" ")[0].strip()
             if reverse:
                 dict_raw[line_idx] = phoneme
             else:
@@ -110,9 +128,9 @@ def create_dict_raw(phoneset_path, reverse=False):
 def create_dict_compressed(phoneset_path, reverse=False):
     dict_comp = dict()
     line_idx = 0
-    with open(phoneset_path, 'r') as f:
+    with open(phoneset_path, "r") as f:
         for line in f:
-            phonemes = re.split('\s+|,', line.strip())
+            phonemes = re.split("\s+|,", line.strip())
             if reverse:
                 dict_comp[line_idx] = phonemes[0]
             else:
